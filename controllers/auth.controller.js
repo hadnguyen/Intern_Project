@@ -17,9 +17,18 @@ const login = catchAsync(async (req, res) => {
   authService.createSendToken(user, 201, res);
 });
 
+const verifyEmail = catchAsync(async (req, res) => {
+  const user = await authService.confirmEmail(req.params.token);
+
+  res.status(200).json({
+    status: 'success',
+    data: user,
+  });
+});
+
 const protect = (req, res, next) => {
   passport.authenticate('jwt', { session: false }, function (err, user) {
-    if (!err && !user) return next(new AppError('Please login to access', 401));
+    if (!user) return next(new AppError('Please login to access', 401));
     req.user = user;
     next();
   })(req, res, next);
@@ -40,4 +49,5 @@ module.exports = {
   login,
   restrictTo,
   protect,
+  verifyEmail,
 };
