@@ -10,15 +10,20 @@ module.exports = {
       },
       name: {
         type: Sequelize.STRING,
+        allowNull: false,
       },
       email: {
         type: Sequelize.STRING,
+        allowNull: false,
+        unique: true,
       },
       password: {
         type: Sequelize.STRING,
+        allowNull: false,
       },
       role: {
         type: Sequelize.STRING,
+        defaultValue: 'user',
       },
       address: {
         type: Sequelize.STRING,
@@ -31,9 +36,17 @@ module.exports = {
       },
       status: {
         type: Sequelize.STRING,
+        defaultValue: 'active',
+      },
+      resetPasswordToken: {
+        type: Sequelize.STRING,
+      },
+      resetPasswordExpire: {
+        type: Sequelize.DATE,
       },
       isVerify: {
         type: Sequelize.BOOLEAN,
+        defaultValue: false,
       },
       createdAt: {
         allowNull: false,

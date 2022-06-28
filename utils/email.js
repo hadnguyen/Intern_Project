@@ -5,7 +5,7 @@ module.exports = class Email {
     this.to = user.email;
     this.name = user.name;
     this.url = url;
-    this.from = `Ha <${process.env.EMAIL_FROM}>`;
+    this.from = `ADMIN <${process.env.EMAIL_FROM}>`;
   }
 
   transporter() {
@@ -40,10 +40,14 @@ module.exports = class Email {
     await this.transporter().sendMail(mailOptions);
   }
 
-  //   async sendPasswordReset() {
-  //     await this.send(
-  //       'passwordReset',
-  //       'Password reset token (valid for 10 minutes)'
-  //     );
-  //   }
+  async sendResetPassword() {
+    const mailOptions = {
+      from: this.from,
+      to: this.to,
+      subject: 'Reset Password',
+      html: `Please click this link to reset your password(valid for 10 minutes): <a href="${this.url}">${this.url}</a>`,
+    };
+
+    await this.transporter().sendMail(mailOptions);
+  }
 };

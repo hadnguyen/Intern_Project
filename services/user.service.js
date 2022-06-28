@@ -1,12 +1,12 @@
 const { User } = require('../models/index');
 const AppError = require('../utils/appError');
 
-const findAllUsers = async () => {
+const getAllUsers = async () => {
   const users = await User.findAll();
   return users;
 };
 
-const findUser = async (userId) => {
+const getUser = async (userId) => {
   const user = await User.findOne({ where: { id: userId } });
 
   if (!user) {
@@ -16,8 +16,8 @@ const findUser = async (userId) => {
   return user;
 };
 
-const updateUserById = async (userId, data) => {
-  await User.update(data, {
+const updateUser = async (userId, userBody) => {
+  await User.update(userBody, {
     where: {
       id: userId,
     },
@@ -32,7 +32,7 @@ const updateUserById = async (userId, data) => {
   return user;
 };
 
-const deleteUserById = async (userId) => {
+const deleteUser = async (userId) => {
   const isDelete = await User.destroy({
     where: {
       id: userId,
@@ -45,8 +45,8 @@ const deleteUserById = async (userId) => {
 };
 
 module.exports = {
-  findAllUsers,
-  findUser,
-  updateUserById,
-  deleteUserById,
+  getAllUsers,
+  getUser,
+  updateUser,
+  deleteUser,
 };
