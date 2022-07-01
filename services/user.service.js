@@ -1,8 +1,9 @@
 const { User } = require('../models/index');
 const AppError = require('../utils/appError');
+const ApiFeatures = require('../common/apiFeatures');
 
-const getAllUsers = async () => {
-  const users = await User.findAll();
+const getAllUsers = async (queryString) => {
+  const users = await ApiFeatures(User, queryString);
   return users;
 };
 
@@ -17,29 +18,34 @@ const getUser = async (userId) => {
 };
 
 const updateUser = async (userId, userBody) => {
-  await User.update(userBody, {
-    where: {
-      id: userId,
-    },
-  });
-
   const user = await User.findOne({ where: { id: userId } });
 
   if (!user) {
     throw new AppError('No user found with that ID', 404);
   }
 
+  try {
+    await User.update(userBody, {
+      where: {
+        id: userId,
+      },
+    });
+    await user.reload();
+  } catch (error) {
+    throw new AppError('Internal server error', 500);
+  }
+
   return user;
 };
 
 const deleteUser = async (userId) => {
-  const isDelete = await User.destroy({
+  const isDeleted = await User.destroy({
     where: {
       id: userId,
     },
   });
 
-  if (!isDelete) {
+  if (!isDeleted) {
     throw new AppError('No user found with that ID', 404);
   }
 };

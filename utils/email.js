@@ -1,5 +1,5 @@
 const nodemailer = require('nodemailer');
-
+const pug = require('pug');
 module.exports = class Email {
   constructor(user, url = '') {
     this.to = user.email;
@@ -19,33 +19,54 @@ module.exports = class Email {
   }
 
   async sendWelcome() {
+    const html = pug.renderFile(`${__dirname}/../views/emails/welcome.pug`, {
+      name: this.name,
+      url: this.url,
+      subject: 'Welcome!',
+    });
     const mailOptions = {
       from: this.from,
       to: this.to,
       subject: 'Welcome!',
-      text: `Hello ${this.name}`,
+      html,
     };
 
     await this.transporter().sendMail(mailOptions);
   }
 
   async sendVerifyEmail() {
+    const html = pug.renderFile(
+      `${__dirname}/../views/emails/verifyEmail.pug`,
+      {
+        name: this.name,
+        url: this.url,
+        subject: 'Verify Email',
+      }
+    );
     const mailOptions = {
       from: this.from,
       to: this.to,
       subject: 'Verify Email',
-      html: `Please click this link to verify your email: <a href="${this.url}">${this.url}</a>`,
+      html,
     };
 
     await this.transporter().sendMail(mailOptions);
   }
 
   async sendResetPassword() {
+    const html = pug.renderFile(
+      `${__dirname}/../views/emails/resetPassword.pug`,
+      {
+        name: this.name,
+        url: this.url,
+        subject: 'Reset Password',
+      }
+    );
     const mailOptions = {
       from: this.from,
       to: this.to,
       subject: 'Reset Password',
-      html: `Please click this link to reset your password(valid for 10 minutes): <a href="${this.url}">${this.url}</a>`,
+      html,
     };
 
     await this.transporter().sendMail(mailOptions);

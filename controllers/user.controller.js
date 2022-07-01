@@ -2,14 +2,16 @@ const userService = require('../services/user.service');
 const catchAsync = require('../utils/catchAsync');
 
 const getAllUsers = catchAsync(async (req, res) => {
-  const users = await userService.getAllUsers();
+  const users = await userService.getAllUsers(req.query);
 
   res.status(200).json({
     status: 'success',
-    results: users.length,
-    data: {
-      users,
-    },
+    results: users.rows.length,
+    totalUsers: users.count,
+    totalPages: users.totalPages,
+    currentPage: users.pageValue,
+    pageSize: users.limitValue,
+    data: users.rows,
   });
 });
 

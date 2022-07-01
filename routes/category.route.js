@@ -1,8 +1,12 @@
 const express = require('express');
 const categoryController = require('../controllers/category.controller');
 const authController = require('../controllers/auth.controller');
+const categoryValidation = require('../validations/category.validation');
 const validate = require('../middlewares/validate');
+const itemRoute = require('./item.route');
 const router = express.Router();
+
+router.use('/:categoryId/items', itemRoute);
 
 router.use(authController.protect);
 router.use(authController.restrictTo('admin'));
@@ -10,7 +14,10 @@ router.use(authController.restrictTo('admin'));
 router
   .route('/')
   .get(categoryController.getAllCategories)
-  .post(categoryController.createCategory);
+  .post(
+    validate(categoryValidation.categorySchema, 'body'),
+    categoryController.createCategory
+  );
 
 router
   .route('/:id')

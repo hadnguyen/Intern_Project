@@ -1,7 +1,7 @@
 'use strict';
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Users', {
+    await queryInterface.createTable('Items', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -11,42 +11,41 @@ module.exports = {
       name: {
         type: Sequelize.STRING,
         allowNull: false,
+        unique: true,
       },
-      email: {
+      barcode: {
         type: Sequelize.STRING,
         allowNull: false,
         unique: true,
       },
-      password: {
-        type: Sequelize.STRING,
+      costPrice: {
+        type: Sequelize.BIGINT,
         allowNull: false,
       },
-      role: {
-        type: Sequelize.STRING,
-        defaultValue: 'user',
+      sellingPrice: {
+        type: Sequelize.BIGINT,
+        allowNull: false,
       },
-      address: {
-        type: Sequelize.STRING,
+      weight: {
+        type: Sequelize.FLOAT,
       },
-      telephone: {
-        type: Sequelize.STRING,
+      inventoryQuantity: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
       },
-      photo: {
-        type: Sequelize.STRING,
+      soldQuantity: {
+        type: Sequelize.INTEGER,
       },
-      status: {
-        type: Sequelize.STRING,
-        defaultValue: 'active',
-      },
-      resetPasswordToken: {
+      description: {
         type: Sequelize.STRING,
       },
-      resetPasswordExpire: {
-        type: Sequelize.DATE,
-      },
-      isVerified: {
-        type: Sequelize.BOOLEAN,
-        defaultValue: false,
+      categoryId: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'Categories',
+          key: 'id',
+        },
       },
       createdAt: {
         allowNull: false,
@@ -59,6 +58,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Users');
+    await queryInterface.dropTable('Items');
   },
 };

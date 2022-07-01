@@ -2,6 +2,7 @@ const express = require('express');
 const passport = require('passport');
 const userRoute = require('./routes/user.route');
 const categoryRoute = require('./routes/category.route');
+const itemRoute = require('./routes/item.route');
 const errorHandler = require('./middlewares/errorHandler');
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
@@ -30,6 +31,9 @@ const app = express();
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
+app.set('views', './views');
+app.set('view engine', 'pug');
+
 app.use(express.json());
 
 app.use(passport.initialize());
@@ -37,6 +41,7 @@ require('./config/passport');
 
 app.use('/api/v1/users', userRoute);
 app.use('/api/v1/categories', categoryRoute);
+app.use('/api/v1/items', itemRoute);
 
 app.use(errorHandler);
 

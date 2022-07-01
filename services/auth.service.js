@@ -37,16 +37,30 @@ const createUser = async (userBody) => {
   const emailToken = signEmailToken(newUser.id);
   const url = `http://127.0.0.1:3000/api/v1/users/verification/${emailToken}`;
 
-  const email = new Email(newUser, url);
-  await email.sendVerifyEmail();
+  try {
+    const email = new Email(newUser, url);
+    await email.sendVerifyEmail();
+  } catch (error) {
+    throw new AppError('Error: sending the email', 500);
+  }
 
   return newUser;
 };
 
 const confirmEmail = async (token) => {
   const decoded = jwt.verify(token, process.env.EMAIL_SECRET);
-  await User.update({ isVerify: true }, { where: { id: decoded.id } });
-  const user = await User.findOne({ where: { id: decoded.id } });
+  let user = await User.findOne({ where: { id: decoded.id } });
+  if (!user) {
+    throw new AppError('No user found with that ID', 404);
+  }
+
+  try {
+    await User.update({ isVerified: true }, { where: { id: decoded.id } });
+    user = await User.findOne({ where: { id: decoded.id } });
+  } catch (error) {
+    throw new AppError('Internal server error', 500);
+  }
+
   return user;
 };
 
@@ -61,7 +75,7 @@ const loginUser = async (email, password) => {
     throw new AppError('Incorrect email or password', 401);
   }
 
-  if (!user.isVerify)
+  if (!user.isVerified)
     throw new AppError('Please verify your email to login', 401);
 
   return user;
@@ -85,9 +99,9 @@ const createResetPasswordToken = async (email) => {
     resetPasswordExpire: resetPasswordExpire,
   });
 
-  await user.save({ fields: ['resetPasswordToken', 'resetPasswordExpire'] });
-
   try {
+    await user.save({ fields: ['resetPasswordToken', 'resetPasswordExpire'] });
+
     const resetURL = `http://127.0.0.1:3000/api/v1/users/resetPassword/${resetToken}`;
     const email = new Email(user, resetURL);
     await email.sendResetPassword();

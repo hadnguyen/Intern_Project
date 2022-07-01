@@ -10,7 +10,11 @@ router.post(
   validate(authValidation.signupSchema, 'body'),
   authController.signup
 );
-router.post('/login', authController.login);
+router.post(
+  '/login',
+  validate(authValidation.loginSchema, 'body'),
+  authController.login
+);
 
 router.post('/forgotPassword', authController.forgotPassword);
 router.patch('/resetPassword/:token', authController.resetPassword);
