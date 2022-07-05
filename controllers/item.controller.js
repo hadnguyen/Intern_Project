@@ -2,15 +2,18 @@ const catchAsync = require('../utils/catchAsync');
 const itemService = require('../services/item.service');
 
 const getAllItems = catchAsync(async (req, res) => {
-  const items = await itemService.getAllItems(req.query);
-
-  res.status(200).json({
-    status: 'success',
+  const items = await itemService.getAllItems(req.query, req.params.categoryId);
+  const meta = {
     results: items.rows.length,
     totalItems: items.count,
     totalPages: items.totalPages,
     currentPage: items.pageValue,
     pageSize: items.limitValue,
+  };
+
+  res.status(200).json({
+    status: 'success',
+    meta: meta,
     data: items.rows,
   });
 });

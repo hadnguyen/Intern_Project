@@ -3,14 +3,17 @@ const catchAsync = require('../utils/catchAsync');
 
 const getAllUsers = catchAsync(async (req, res) => {
   const users = await userService.getAllUsers(req.query);
-
-  res.status(200).json({
-    status: 'success',
+  const meta = {
     results: users.rows.length,
     totalUsers: users.count,
     totalPages: users.totalPages,
     currentPage: users.pageValue,
     pageSize: users.limitValue,
+  };
+
+  res.status(200).json({
+    status: 'success',
+    meta: meta,
     data: users.rows,
   });
 });
@@ -46,9 +49,21 @@ const deleteUser = catchAsync(async (req, res) => {
   });
 });
 
+const updateUserPhoto = catchAsync(async (req, res) => {
+  const user = await userService.updateUserPhoto(req.user.id, req.file);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      user,
+    },
+  });
+});
+
 module.exports = {
   getAllUsers,
   getUser,
   updateUser,
   deleteUser,
+  updateUserPhoto,
 };

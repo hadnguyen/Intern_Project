@@ -1,11 +1,15 @@
 const { Category, Item } = require('../models/index');
 const AppError = require('../utils/appError');
 const ApiFeatures = require('../common/apiFeatures');
+const cloudinary = require('../utils/cloudinary');
 
 const getAllCategories = async (queryString) => {
-  const categories = await ApiFeatures(Category, queryString);
-
-  return categories;
+  try {
+    const categories = await ApiFeatures(Category, queryString);
+    return categories;
+  } catch (error) {
+    throw new AppError('Internal server error', 500);
+  }
 };
 
 const getCategory = async (categoryId) => {
@@ -19,11 +23,17 @@ const getCategory = async (categoryId) => {
 };
 
 const createCategory = async (categoryBody) => {
-  const category = await Category.create(categoryBody);
-  return category;
+  try {
+    const category = await Category.create(categoryBody);
+    return category;
+  } catch (error) {
+    throw new AppError('Internal server error', 500);
+  }
 };
 
-const updateCategory = async (categoryId, categoryBody) => {
+const updateCategory = async (categoryId, categoryBody, files) => {
+  const urls = [];
+
   const category = await Category.findOne({ where: { id: categoryId } });
 
   if (!category) {
@@ -31,6 +41,21 @@ const updateCategory = async (categoryId, categoryBody) => {
   }
 
   try {
+    if (files.length > 0) {
+      await Promise.all(
+        files.map(async (file) => {
+          const { path } = file;
+          const newPath = await cloudinary.uploader.upload(path, {
+            folder: 'VMO_Project/Category',
+            use_filename: true,
+          });
+          urls.push(newPath.secure_url);
+        })
+      );
+
+      categoryBody.banner = urls;
+    }
+
     await Category.update(categoryBody, {
       where: {
         id: categoryId,

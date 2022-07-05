@@ -1,9 +1,14 @@
 const express = require('express');
 const itemController = require('../controllers/item.controller');
 const authController = require('../controllers/auth.controller');
+const mediaRoute = require('../routes/media.route');
 const itemValidation = require('../validations/item.validation');
 const validate = require('../middlewares/validate');
+const upload = require('../utils/multer');
+
 const router = express.Router({ mergeParams: true });
+
+router.use('/:itemId/medias', mediaRoute);
 
 router.use(authController.protect);
 router.use(authController.restrictTo('admin'));

@@ -4,6 +4,7 @@ const authController = require('../controllers/auth.controller');
 const categoryValidation = require('../validations/category.validation');
 const validate = require('../middlewares/validate');
 const itemRoute = require('./item.route');
+const upload = require('../utils/multer');
 const router = express.Router();
 
 router.use('/:categoryId/items', itemRoute);
@@ -22,7 +23,7 @@ router
 router
   .route('/:id')
   .get(categoryController.getCategory)
-  .patch(categoryController.updateCategory)
+  .patch(upload.array('banner'), categoryController.updateCategory)
   .delete(categoryController.deleteCategory);
 
 module.exports = router;

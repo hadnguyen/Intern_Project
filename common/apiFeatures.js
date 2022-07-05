@@ -1,6 +1,13 @@
 const { Op } = require('sequelize');
+const {
+  User,
+  OrderDetail,
+  Voucher,
+  Category,
+  Media,
+} = require('../models/index');
 
-const ApiFeatures = async (model, queryString) => {
+const ApiFeatures = async (model, queryString, id) => {
   let filter = {};
   let attributeValues;
   let limitValue = 5;
@@ -17,6 +24,10 @@ const ApiFeatures = async (model, queryString) => {
     // queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
     // filter = JSON.parse(queryStr);
     filter = queryObj;
+  }
+
+  if (id && model.name == 'Item') {
+    filter.categoryId = id;
   }
 
   if (queryString.fields) {
@@ -42,14 +53,72 @@ const ApiFeatures = async (model, queryString) => {
 
   const skip = (pageValue - 1) * limitValue;
 
-  const { count, rows } = await model.findAndCountAll({
-    attributes: attributeValues,
-    where: filter,
-    order: orderValueArray,
-    limit: limitValue,
-    offset: skip,
-  });
+  let result;
 
+  if (model.name === 'Item') {
+    result = await model.findAndCountAll({
+      attributes: attributeValues,
+      where: filter,
+      include: [{ model: Category }, { model: Media }],
+      order: orderValueArray,
+      limit: limitValue,
+      offset: skip,
+    });
+  }
+
+  if (model.name === 'User') {
+    result = await model.findAndCountAll({
+      attributes: attributeValues,
+      where: filter,
+      order: orderValueArray,
+      limit: limitValue,
+      offset: skip,
+    });
+  }
+
+  if (model.name === 'Category') {
+    result = await model.findAndCountAll({
+      attributes: attributeValues,
+      where: filter,
+      order: orderValueArray,
+      limit: limitValue,
+      offset: skip,
+    });
+  }
+
+  if (model.name === 'Media') {
+    result = await model.findAndCountAll({
+      attributes: attributeValues,
+      where: filter,
+      order: orderValueArray,
+      limit: limitValue,
+      offset: skip,
+    });
+  }
+
+  if (model.name === 'Voucher') {
+    result = await model.findAndCountAll({
+      attributes: attributeValues,
+      where: filter,
+      order: orderValueArray,
+      limit: limitValue,
+      offset: skip,
+    });
+  }
+
+  if (model.name === 'Order') {
+    result = await model.findAndCountAll({
+      attributes: attributeValues,
+      where: filter,
+      include: [{ model: User }, { model: OrderDetail }, { model: Voucher }],
+      order: orderValueArray,
+      limit: limitValue,
+      offset: skip,
+    });
+  }
+
+  const rows = result.rows;
+  const count = result.count;
   const totalPages = Math.ceil(count / limitValue);
   return { rows, count, totalPages, pageValue, limitValue };
 };

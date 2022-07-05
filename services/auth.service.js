@@ -31,20 +31,24 @@ const comparePassword = async (inputPassword, userPassword) => {
 };
 
 const createUser = async (userBody) => {
-  userBody.password = await bcrypt.hash(userBody.password, 12);
-  const newUser = await User.create(userBody);
-
-  const emailToken = signEmailToken(newUser.id);
-  const url = `http://127.0.0.1:3000/api/v1/users/verification/${emailToken}`;
-
   try {
-    const email = new Email(newUser, url);
-    await email.sendVerifyEmail();
-  } catch (error) {
-    throw new AppError('Error: sending the email', 500);
-  }
+    userBody.password = await bcrypt.hash(userBody.password, 12);
+    const newUser = await User.create(userBody);
 
-  return newUser;
+    const emailToken = signEmailToken(newUser.id);
+    const welcomeURL = 'http://127.0.0.1:3000/api/v1/users/profile';
+    const verifyURL = `http://127.0.0.1:3000/api/v1/users/verification/${emailToken}`;
+
+    const welcomeEmail = new Email(newUser, welcomeURL);
+    const verifyEmail = new Email(newUser, verifyURL);
+
+    await welcomeEmail.sendWelcome();
+    await verifyEmail.sendVerifyEmail();
+
+    return newUser;
+  } catch (error) {
+    throw new AppError('Internal server error', 500);
+  }
 };
 
 const confirmEmail = async (token) => {
@@ -78,6 +82,9 @@ const loginUser = async (email, password) => {
   if (!user.isVerified)
     throw new AppError('Please verify your email to login', 401);
 
+  if (user.status === 'inactive')
+    throw new AppError('Your account had been locked', 401);
+
   return user;
 };
 
@@ -109,7 +116,7 @@ const createResetPasswordToken = async (email) => {
     user.resetPasswordToken = null;
     user.resetPasswordExpire = null;
     await user.save({ fields: ['resetPasswordToken', 'resetPasswordExpire'] });
-
+    console.log('Error!!!!');
     throw new AppError('Error: sending the email', 500);
   }
 };
@@ -132,12 +139,16 @@ const resetPassword = async (token, password) => {
     throw new AppError('Token is invalid or has expired', 400);
   }
 
-  user.password = await bcrypt.hash(password, 12);
-  user.resetPasswordToken = null;
-  user.resetPasswordExpire = null;
-  await user.save({
-    fields: ['password', 'resetPasswordToken', 'resetPasswordExpire'],
-  });
+  try {
+    user.password = await bcrypt.hash(password, 12);
+    user.resetPasswordToken = null;
+    user.resetPasswordExpire = null;
+    await user.save({
+      fields: ['password', 'resetPasswordToken', 'resetPasswordExpire'],
+    });
+  } catch (error) {
+    throw new AppError('Internal server error', 500);
+  }
 
   return user;
 };

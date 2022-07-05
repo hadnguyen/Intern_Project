@@ -1,7 +1,7 @@
 'use strict';
 const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class Item extends Model {
+  class Order extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -9,54 +9,46 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Item.belongsTo(models.Category, {
-        foreignKey: 'categoryId',
+      Order.belongsTo(models.Voucher, {
+        foreignKey: 'voucherId',
       });
-      Item.hasMany(models.Media, {
-        foreignKey: 'itemId',
+      Order.belongsTo(models.User, {
+        foreignKey: 'userId',
       });
-      Item.belongsToMany(models.Order, { through: models.OrderDetail });
-      Item.belongsToMany(models.FlashSale, { through: models.FlashSale_Item });
+      Order.belongsToMany(models.Item, { through: models.OrderDetail });
     }
   }
-  Item.init(
+  Order.init(
     {
       name: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true,
       },
-      barcode: {
+      address: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true,
       },
-      costPrice: {
-        type: DataTypes.BIGINT,
+      telephone: {
+        type: DataTypes.STRING,
         allowNull: false,
       },
-      sellingPrice: {
-        type: DataTypes.BIGINT,
+      email: {
+        type: DataTypes.STRING,
         allowNull: false,
       },
-      weight: {
-        type: DataTypes.FLOAT,
-      },
-      inventoryQuantity: {
+      total: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      soldQuantity: {
-        type: DataTypes.INTEGER,
-      },
-      description: {
+      status: {
         type: DataTypes.STRING,
+        allowNull: false,
       },
     },
     {
       sequelize,
-      modelName: 'Item',
+      modelName: 'Order',
     }
   );
-  return Item;
+  return Order;
 };

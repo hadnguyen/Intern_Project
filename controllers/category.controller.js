@@ -3,14 +3,17 @@ const categoryService = require('../services/category.service');
 
 const getAllCategories = catchAsync(async (req, res) => {
   const categories = await categoryService.getAllCategories(req.query);
-
-  res.status(200).json({
-    status: 'success',
+  const meta = {
     results: categories.rows.length,
     totalCategories: categories.count,
     totalPages: categories.totalPages,
     currentPage: categories.pageValue,
     pageSize: categories.limitValue,
+  };
+
+  res.status(200).json({
+    status: 'success',
+    meta: meta,
     data: categories.rows,
   });
 });
@@ -36,7 +39,8 @@ const createCategory = catchAsync(async (req, res) => {
 const updateCategory = catchAsync(async (req, res) => {
   const category = await categoryService.updateCategory(
     req.params.id,
-    req.body
+    req.body,
+    req.files
   );
 
   res.status(200).json({

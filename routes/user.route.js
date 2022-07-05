@@ -3,6 +3,7 @@ const authController = require('../controllers/auth.controller');
 const userController = require('../controllers/user.controller');
 const authValidation = require('../validations/auth.validation');
 const validate = require('../middlewares/validate');
+const upload = require('../utils/multer');
 const router = express.Router();
 
 router.post(
@@ -22,6 +23,12 @@ router.patch('/resetPassword/:token', authController.resetPassword);
 router.get('/verification/:token', authController.verifyEmail);
 
 router.use(authController.protect);
+
+router.patch(
+  '/profile',
+  upload.single('photo'),
+  userController.updateUserPhoto
+);
 
 router.use(authController.restrictTo('admin'));
 

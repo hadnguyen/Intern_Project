@@ -1,10 +1,15 @@
 const { User } = require('../models/index');
 const AppError = require('../utils/appError');
 const ApiFeatures = require('../common/apiFeatures');
+const cloudinary = require('../utils/cloudinary');
 
 const getAllUsers = async (queryString) => {
-  const users = await ApiFeatures(User, queryString);
-  return users;
+  try {
+    const users = await ApiFeatures(User, queryString);
+    return users;
+  } catch (error) {
+    throw new AppError('Internal server error', 500);
+  }
 };
 
 const getUser = async (userId) => {
@@ -50,9 +55,37 @@ const deleteUser = async (userId) => {
   }
 };
 
+const updateUserPhoto = async (userId, file) => {
+  try {
+    const result = await cloudinary.uploader.upload(file.path, {
+      folder: 'VMO_Project/Avatar',
+      use_filename: true,
+    });
+
+    await User.update(
+      { photo: result.secure_url },
+      {
+        where: {
+          id: userId,
+        },
+      }
+    );
+
+    const user = await User.findOne({
+      attributes: ['id', 'email', 'name', 'photo'],
+      where: { id: userId },
+    });
+
+    return user;
+  } catch (error) {
+    throw new AppError('Internal server error', 500);
+  }
+};
+
 module.exports = {
   getAllUsers,
   getUser,
   updateUser,
   deleteUser,
+  updateUserPhoto,
 };
