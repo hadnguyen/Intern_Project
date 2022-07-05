@@ -15,8 +15,12 @@ module.exports = (sequelize, DataTypes) => {
       Item.hasMany(models.Media, {
         foreignKey: 'itemId',
       });
-      Item.belongsToMany(models.Order, { through: models.OrderDetail });
-      Item.belongsToMany(models.FlashSale, { through: models.FlashSale_Item });
+      Item.belongsToMany(models.Order, {
+        through: models.OrderDetail,
+      });
+      Item.belongsToMany(models.FlashSale, {
+        through: models.FlashSale_Item,
+      });
     }
   }
   Item.init(

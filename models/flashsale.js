@@ -9,7 +9,9 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      FlashSale.belongsToMany(models.Item, { through: models.FlashSale_Item });
+      FlashSale.belongsToMany(models.Item, {
+        through: models.FlashSale_Item,
+      });
     }
   }
   FlashSale.init(

@@ -42,7 +42,7 @@ module.exports = {
       },
       voucherId: {
         type: Sequelize.INTEGER,
-        allowNull: false,
+        allowNull: true,
         references: {
           model: 'Vouchers',
           key: 'id',

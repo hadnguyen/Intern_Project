@@ -2,9 +2,13 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('FlashSale_Items', {
-      id: {
+      FlashSaleId: {
         allowNull: false,
-        autoIncrement: true,
+        primaryKey: true,
+        type: Sequelize.INTEGER,
+      },
+      ItemId: {
+        allowNull: false,
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
@@ -15,22 +19,6 @@ module.exports = {
       discountPercent: {
         type: Sequelize.STRING,
         allowNull: false,
-      },
-      flashSaleId: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'FlashSales',
-          key: 'id',
-        },
-      },
-      itemId: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'Items',
-          key: 'id',
-        },
       },
       createdAt: {
         allowNull: false,

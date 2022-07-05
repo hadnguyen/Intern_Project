@@ -35,6 +35,7 @@ module.exports = {
       },
       soldQuantity: {
         type: Sequelize.INTEGER,
+        defaultValue: 0,
       },
       description: {
         type: Sequelize.STRING,

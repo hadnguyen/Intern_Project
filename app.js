@@ -5,6 +5,7 @@ const categoryRoute = require('./routes/category.route');
 const itemRoute = require('./routes/item.route');
 const mediaRoute = require('./routes/media.route');
 const voucherRoute = require('./routes/voucher.route');
+const orderRoute = require('./routes/order.route');
 const errorHandler = require('./middlewares/errorHandler');
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
@@ -47,6 +48,7 @@ app.use('/api/v1/categories', categoryRoute);
 app.use('/api/v1/items', itemRoute);
 app.use('/api/v1/medias', mediaRoute);
 app.use('/api/v1/vouchers', voucherRoute);
+app.use('/api/v1/orders', orderRoute);
 
 app.use(errorHandler);
 

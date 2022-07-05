@@ -101,10 +101,8 @@ const createResetPasswordToken = async (email) => {
 
   let resetPasswordExpire = Date.now() + 10 * 60 * 1000; // Expire in 10 min
 
-  user.set({
-    resetPasswordToken: resetPasswordToken,
-    resetPasswordExpire: resetPasswordExpire,
-  });
+  user.resetPasswordToken = resetPasswordToken;
+  user.resetPasswordExpire = resetPasswordExpire;
 
   try {
     await user.save({ fields: ['resetPasswordToken', 'resetPasswordExpire'] });
