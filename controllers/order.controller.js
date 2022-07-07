@@ -28,16 +28,15 @@ const getOrder = catchAsync(async (req, res) => {
 });
 
 const createOrder = catchAsync(async (req, res) => {
-  const { order, orderDetail } = await orderService.createOrder(
+  const { order, orderDetails } = await orderService.createOrder(
     req.body,
-    req.query,
     req.user.id
   );
 
   res.status(201).json({
     status: 'success',
     data: order,
-    detail: orderDetail,
+    detail: orderDetails,
   });
 });
 

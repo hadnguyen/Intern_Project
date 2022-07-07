@@ -31,6 +31,7 @@ module.exports = {
       status: {
         type: Sequelize.STRING,
         allowNull: false,
+        defaultValue: 'new',
       },
       userId: {
         type: Sequelize.INTEGER,

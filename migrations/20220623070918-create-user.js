@@ -35,7 +35,7 @@ module.exports = {
         type: Sequelize.STRING,
       },
       status: {
-        type: Sequelize.STRING,
+        type: Sequelize.ENUM('active', 'inactive'),
         defaultValue: 'active',
       },
       resetPasswordToken: {

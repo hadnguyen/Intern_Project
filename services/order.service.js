@@ -1,3 +1,4 @@
+const { sequelize } = require('../models/index');
 const { Order, Item, OrderDetail } = require('../models/index');
 const AppError = require('../utils/appError');
 const ApiFeatures = require('../common/apiFeatures');
@@ -21,43 +22,67 @@ const getOrder = async (orderId) => {
   return order;
 };
 
-const createOrder = async (orderBody, item, userId) => {
+const createOrder = async (orderBody, userId) => {
   try {
-    // const order = await Order.create(orderBody);
-    // return order;
-    const { item: itemId, quantity } = item;
-    const orderedItem = await Item.findOne({ where: { id: itemId } });
+    const result = await sequelize.transaction(async (t) => {
+      let total;
 
-    let total = orderedItem.sellingPrice * quantity;
-    orderBody.userId = userId;
-    orderBody.total = total;
+      const orderedItem = await Promise.all(
+        orderBody.items.map(
+          async (item) => await Item.findOne({ where: { id: item.id } })
+        )
+      );
 
-    const order = await Order.create(orderBody);
+      if (Object.keys(orderedItem).length === 0)
+        throw new AppError('Please choose items to order', 400);
 
-    // console.log('orderId: ', order.id);
-    // console.log('itemId: ', itemId);
+      // Buy 1 item or many items
+      if (Object.keys(orderedItem).length === 1) {
+        total = +orderedItem[0].sellingPrice * +orderBody.items[0].quantity;
+      } else {
+        total = orderedItem.reduce((acc, item, index) => {
+          const sum =
+            +acc.sellingPrice * orderBody.items[index - 1].quantity +
+            +item.sellingPrice * orderBody.items[index].quantity;
 
-    const { id: orderId } = order;
+          return sum;
+        });
+      }
 
-    const orderDetail = await OrderDetail.create({
-      OrderId: orderId,
-      ItemId: itemId,
-      price: orderedItem.sellingPrice,
-      quantity: quantity,
+      orderBody.userId = userId;
+      orderBody.total = total;
+
+      const order = await Order.create(orderBody, { transaction: t });
+      const { id: orderId } = order;
+
+      const orderDetails = await Promise.all(
+        orderedItem.map(
+          async (item, index) =>
+            await OrderDetail.create(
+              {
+                OrderId: orderId,
+                ItemId: item.id,
+                price: item.sellingPrice,
+                quantity: orderBody.items[index].quantity,
+              },
+              { transaction: t }
+            )
+        )
+      );
+
+      await Promise.all(
+        orderedItem.map(async (item, index) => {
+          item.inventoryQuantity -= orderBody.items[index].quantity;
+          item.soldQuantity += orderBody.items[index].quantity;
+
+          return await item.save({ transaction: t });
+        })
+      );
+
+      return { order, orderDetails };
     });
-
-    // console.log(orderDetail);
-
-    orderedItem.inventoryQuantity -= quantity;
-    orderedItem.soldQuantity += quantity;
-
-    await orderedItem.save({
-      fields: ['inventoryQuantity', 'soldQuantity'],
-    });
-
-    return { order, orderDetail };
+    return result;
   } catch (error) {
-    console.log(error);
     throw error;
   }
 };

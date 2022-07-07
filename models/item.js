@@ -52,6 +52,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       soldQuantity: {
         type: DataTypes.INTEGER,
+        defaultValue: 0,
       },
       description: {
         type: DataTypes.STRING,

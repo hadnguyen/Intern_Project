@@ -29,7 +29,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.ARRAY(DataTypes.STRING),
       },
       status: {
-        type: DataTypes.STRING,
+        type: DataTypes.ENUM('active', 'inactive'),
         defaultValue: 'active',
       },
     },

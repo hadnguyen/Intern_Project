@@ -21,7 +21,7 @@ module.exports = {
         type: Sequelize.ARRAY(Sequelize.STRING),
       },
       status: {
-        type: Sequelize.STRING,
+        type: Sequelize.ENUM('active', 'inactive'),
         defaultValue: 'active',
       },
       createdAt: {
