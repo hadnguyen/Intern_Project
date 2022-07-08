@@ -2,6 +2,7 @@ const { Op } = require('sequelize');
 const {
   User,
   OrderDetail,
+  Item,
   Voucher,
   Category,
   Media,
@@ -12,8 +13,7 @@ const ApiFeatures = async (model, queryString, id) => {
   let attributeValues;
   let limitValue = 5;
   let pageValue = 1;
-
-  const orderValueArray = [];
+  const sortValueArray = [];
 
   const queryObj = { ...queryString };
   const excludedFields = ['page', 'sort', 'limit', 'fields'];
@@ -40,7 +40,7 @@ const ApiFeatures = async (model, queryString, id) => {
       queryString.sort = queryString.sort.slice(1);
       direction = 'DESC';
     }
-    orderValueArray.push([queryString.sort, direction]);
+    sortValueArray.push([queryString.sort, direction]);
   }
 
   if (queryString.limit) {
@@ -60,7 +60,7 @@ const ApiFeatures = async (model, queryString, id) => {
       attributes: attributeValues,
       where: filter,
       include: [{ model: Category }, { model: Media }],
-      order: orderValueArray,
+      order: sortValueArray,
       limit: limitValue,
       offset: skip,
     });
@@ -70,7 +70,7 @@ const ApiFeatures = async (model, queryString, id) => {
     result = await model.findAndCountAll({
       attributes: attributeValues,
       where: filter,
-      order: orderValueArray,
+      order: sortValueArray,
       limit: limitValue,
       offset: skip,
     });
@@ -80,7 +80,7 @@ const ApiFeatures = async (model, queryString, id) => {
     result = await model.findAndCountAll({
       attributes: attributeValues,
       where: filter,
-      order: orderValueArray,
+      order: sortValueArray,
       limit: limitValue,
       offset: skip,
     });
@@ -90,7 +90,7 @@ const ApiFeatures = async (model, queryString, id) => {
     result = await model.findAndCountAll({
       attributes: attributeValues,
       where: filter,
-      order: orderValueArray,
+      order: sortValueArray,
       limit: limitValue,
       offset: skip,
     });
@@ -100,7 +100,18 @@ const ApiFeatures = async (model, queryString, id) => {
     result = await model.findAndCountAll({
       attributes: attributeValues,
       where: filter,
-      order: orderValueArray,
+      order: sortValueArray,
+      limit: limitValue,
+      offset: skip,
+    });
+  }
+
+  if (model.name === 'FlashSale') {
+    result = await model.findAndCountAll({
+      attributes: attributeValues,
+      where: filter,
+      include: Item,
+      order: sortValueArray,
       limit: limitValue,
       offset: skip,
     });
@@ -108,10 +119,19 @@ const ApiFeatures = async (model, queryString, id) => {
 
   if (model.name === 'Order') {
     result = await model.findAndCountAll({
+      distinct: true,
       attributes: attributeValues,
       where: filter,
-      include: [{ model: User }, { model: OrderDetail }, { model: Voucher }],
-      order: orderValueArray,
+      include: [
+        {
+          model: Item,
+          attributes: ['id', 'name', 'sellingPrice'],
+          include: [{ model: Category, attributes: ['name'] }],
+        },
+        { model: User, attributes: ['name', 'email'] },
+        { model: Voucher },
+      ],
+      order: sortValueArray,
       limit: limitValue,
       offset: skip,
     });

@@ -22,7 +22,7 @@ module.exports = {
         allowNull: false,
       },
       role: {
-        type: Sequelize.STRING,
+        type: Sequelize.ENUM('user', 'admin'),
         defaultValue: 'user',
       },
       address: {

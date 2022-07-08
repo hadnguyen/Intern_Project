@@ -11,6 +11,8 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       Voucher.hasMany(models.Order, {
         foreignKey: 'voucherId',
+        onDelete: 'RESTRICT',
+        onUpdate: 'RESTRICT',
       });
     }
   }

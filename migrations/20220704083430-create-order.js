@@ -29,7 +29,7 @@ module.exports = {
         allowNull: false,
       },
       status: {
-        type: Sequelize.STRING,
+        type: Sequelize.ENUM('new', 'in progress', 'completed', 'canceled'),
         allowNull: false,
         defaultValue: 'new',
       },
@@ -40,6 +40,8 @@ module.exports = {
           model: 'Users',
           key: 'id',
         },
+        onDelete: 'RESTRICT',
+        onUpdate: 'RESTRICT',
       },
       voucherId: {
         type: Sequelize.INTEGER,
@@ -48,6 +50,8 @@ module.exports = {
           model: 'Vouchers',
           key: 'id',
         },
+        onDelete: 'RESTRICT',
+        onUpdate: 'RESTRICT',
       },
       createdAt: {
         allowNull: false,

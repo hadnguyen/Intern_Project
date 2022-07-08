@@ -1,4 +1,4 @@
-const { Item, Category, Media } = require('../models/index');
+const { Item, Category, Media, FlashSale } = require('../models/index');
 const AppError = require('../utils/appError');
 const ApiFeatures = require('../common/apiFeatures');
 
@@ -14,7 +14,7 @@ const getAllItems = async (queryString, categoryId) => {
 const getItem = async (itemId) => {
   const item = await Item.findOne({
     where: { id: itemId },
-    include: [{ model: Category }, { model: Media }],
+    include: [{ model: Category }, { model: Media }, { model: FlashSale }],
   });
 
   if (!item) {

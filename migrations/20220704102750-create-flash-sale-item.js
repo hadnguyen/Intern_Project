@@ -2,15 +2,31 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('FlashSale_Items', {
-      FlashSaleId: {
+      id: {
         allowNull: false,
+        autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      ItemId: {
-        allowNull: false,
-        primaryKey: true,
+      FlashSaleId: {
         type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'FlashSales',
+          key: 'id',
+        },
+        onDelete: 'RESTRICT',
+        onUpdate: 'RESTRICT',
+      },
+      ItemId: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'Items',
+          key: 'id',
+        },
+        onDelete: 'RESTRICT',
+        onUpdate: 'RESTRICT',
       },
       quantity: {
         type: Sequelize.INTEGER,

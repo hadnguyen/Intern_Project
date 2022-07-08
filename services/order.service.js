@@ -1,5 +1,14 @@
 const { sequelize } = require('../models/index');
-const { Order, Item, OrderDetail } = require('../models/index');
+const {
+  Order,
+  Item,
+  OrderDetail,
+  Voucher,
+  Category,
+  User,
+  FlashSale,
+  FlashSale_Item,
+} = require('../models/index');
 const AppError = require('../utils/appError');
 const ApiFeatures = require('../common/apiFeatures');
 
@@ -8,12 +17,22 @@ const getAllOrders = async (queryString) => {
     const orders = await ApiFeatures(Order, queryString);
     return orders;
   } catch (error) {
-    throw new AppError('Internal server error', 500);
+    throw error;
   }
 };
 
 const getOrder = async (orderId) => {
-  const order = await Order.findOne({ where: { id: orderId } });
+  const order = await Order.findOne({
+    where: { id: orderId },
+    include: [
+      {
+        model: Item,
+        include: Category,
+      },
+      { model: User },
+      { model: Voucher },
+    ],
+  });
 
   if (!order) {
     throw new AppError('No order found with that ID', 404);
@@ -25,36 +44,83 @@ const getOrder = async (orderId) => {
 const createOrder = async (orderBody, userId) => {
   try {
     const result = await sequelize.transaction(async (t) => {
-      let total;
+      let total = 0;
 
+      // Find all items
       const orderedItem = await Promise.all(
         orderBody.items.map(
-          async (item) => await Item.findOne({ where: { id: item.id } })
+          async (item) =>
+            await Item.findOne({ where: { id: item.id }, include: FlashSale })
         )
       );
 
-      if (Object.keys(orderedItem).length === 0)
+      if (orderedItem.length === 0)
         throw new AppError('Please choose items to order', 400);
 
-      // Buy 1 item or many items
-      if (Object.keys(orderedItem).length === 1) {
-        total = +orderedItem[0].sellingPrice * +orderBody.items[0].quantity;
-      } else {
-        total = orderedItem.reduce((acc, item, index) => {
-          const sum =
-            +acc.sellingPrice * orderBody.items[index - 1].quantity +
-            +item.sellingPrice * orderBody.items[index].quantity;
+      if (orderedItem.some((item) => item === null))
+        throw new AppError('No item found with that ID', 404);
 
-          return sum;
+      const isEnoughItems = orderedItem.some(
+        (item, index) =>
+          item.inventoryQuantity < orderBody.items[index].quantity
+      );
+      if (isEnoughItems) throw new AppError('Do not have enough items');
+
+      for (let index = 0; index < orderedItem.length; index++) {
+        const { sellingPrice, FlashSales } = orderedItem[index];
+
+        if (FlashSales.length) {
+          const validFlashSale = FlashSales.filter(
+            (fs) => fs.endDate > Date.now()
+          );
+          const usedFlashSale = await FlashSale_Item.findOne({
+            where: { FlashSaleId: validFlashSale[0].id },
+          });
+
+          console.log(usedFlashSale.quantity);
+
+          const discountPercent = usedFlashSale.discountPercent.replace(
+            '%',
+            ''
+          );
+          total +=
+            orderBody.items[index].quantity *
+            (sellingPrice * (100 - discountPercent) * 0.01);
+
+          // Reduce the number of items have flashsale
+          usedFlashSale.quantity -= orderBody.items[index].quantity;
+          await usedFlashSale.save({ transaction: t });
+        } else {
+          total += orderBody.items[index].quantity * sellingPrice;
+        }
+      }
+
+      // Check order whether it has voucher or not
+      if (orderBody.voucherId) {
+        const voucher = await Voucher.findOne({
+          where: { id: orderBody.voucherId },
         });
+        if (!voucher || voucher.quantity === 0)
+          throw new AppError('No voucher found with that ID', 404);
+
+        if (voucher.endDate < Date.now()) {
+          throw new AppError('The voucher is invalid or has expired', 400);
+        } else {
+          const discountPercent = voucher.discountPercent.replace('%', '');
+          total = total - (total * discountPercent) / 100;
+          voucher.quantity -= 1;
+          await voucher.save({ transaction: t });
+        }
       }
 
       orderBody.userId = userId;
       orderBody.total = total;
 
-      const order = await Order.create(orderBody, { transaction: t });
+      // Create order
+      const order = await Order.create(orderBodys, { transaction: t });
       const { id: orderId } = order;
 
+      // Create order details
       const orderDetails = await Promise.all(
         orderedItem.map(
           async (item, index) =>
@@ -108,22 +174,9 @@ const updateOrder = async (orderId, orderBody) => {
   return order;
 };
 
-const deleteOrder = async (orderId) => {
-  const isDeleted = await Order.destroy({
-    where: {
-      id: orderId,
-    },
-  });
-
-  if (!isDeleted) {
-    throw new AppError('No voucher found with that ID', 404);
-  }
-};
-
 module.exports = {
   getAllOrders,
   getOrder,
   createOrder,
   updateOrder,
-  deleteOrder,
 };

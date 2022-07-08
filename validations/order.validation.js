@@ -12,6 +12,7 @@ const orderSchema = Joi.object({
       quantity: Joi.number().integer().required(),
     })
   ),
+  voucherId: Joi.number().integer(),
 });
 
 module.exports = {

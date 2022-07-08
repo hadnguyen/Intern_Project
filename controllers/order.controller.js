@@ -2,7 +2,7 @@ const catchAsync = require('../utils/catchAsync');
 const orderService = require('../services/order.service');
 
 const getAllOrders = catchAsync(async (req, res) => {
-  const orders = await orderService.getAllorders(req.query);
+  const orders = await orderService.getAllOrders(req.query);
   const meta = {
     results: orders.rows.length,
     totalOrders: orders.count,
@@ -49,19 +49,9 @@ const updateOrder = catchAsync(async (req, res) => {
   });
 });
 
-const deleteOrder = catchAsync(async (req, res) => {
-  await orderService.deleteOrder(req.params.id);
-
-  res.status(200).json({
-    status: 'success',
-    data: null,
-  });
-});
-
 module.exports = {
   getAllOrders,
   getOrder,
   createOrder,
   updateOrder,
-  deleteOrder,
 };
