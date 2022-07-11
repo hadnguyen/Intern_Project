@@ -12,7 +12,12 @@ const getAllMedias = async (queryString) => {
   }
 };
 
-const createMedia = async (itemId, mediaBody, file) => {
+const updateMedia = async (mediaId, mediaBody, file) => {
+  const media = await Media.findOne({ where: { id: mediaId } });
+
+  if (!media) {
+    throw new AppError('No media found with that ID', 404);
+  }
   try {
     const result = await cloudinary.uploader.upload(file.path, {
       folder: 'VMO_Project/Item',
@@ -20,10 +25,14 @@ const createMedia = async (itemId, mediaBody, file) => {
     });
 
     mediaBody.url = result.secure_url;
-    mediaBody.itemId = itemId;
 
-    const media = await Media.create(mediaBody);
+    await Media.update(mediaBody, {
+      where: {
+        id: mediaId,
+      },
+    });
 
+    await media.reload();
     return media;
   } catch (error) {
     throw new AppError('Internal server error', 500);
@@ -32,5 +41,5 @@ const createMedia = async (itemId, mediaBody, file) => {
 
 module.exports = {
   getAllMedias,
-  createMedia,
+  updateMedia,
 };

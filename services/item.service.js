@@ -1,6 +1,7 @@
 const { Item, Category, Media, FlashSale } = require('../models/index');
 const AppError = require('../utils/appError');
 const ApiFeatures = require('../common/apiFeatures');
+const cloudinary = require('../utils/cloudinary');
 
 const getAllItems = async (queryString, categoryId) => {
   try {
@@ -24,10 +25,27 @@ const getItem = async (itemId) => {
   return item;
 };
 
-const createItem = async (itemBody) => {
+const createItem = async (itemBody, file) => {
   try {
-    const item = await Item.create(itemBody);
-    return item;
+    const result = await cloudinary.uploader.upload(file.path, {
+      folder: 'VMO_Project/Item',
+      use_filename: true,
+    });
+    const newItem = { ...itemBody };
+    const excludedFields = ['mediaName', 'type'];
+    excludedFields.forEach((field) => {
+      delete newItem[field];
+    });
+
+    const item = await Item.create(newItem);
+    const media = await Media.create({
+      name: itemBody.mediaName,
+      url: result.secure_url,
+      type: itemBody.type,
+      itemId: item.id,
+    });
+
+    return { item, media };
   } catch (error) {
     throw new AppError('Internal server error', 500);
   }

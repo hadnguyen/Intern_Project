@@ -34,8 +34,13 @@ const createFlashSale = async (flashsaleBody) => {
     )
   );
 
-  if (itemsNeedToAddFlashSale.some((item) => item === null))
-    throw new AppError('No item found with that ID', 404);
+  const notHaveItems = itemsNeedToAddFlashSale.some((item) => item === null);
+  if (notHaveItems) throw new AppError('No item found with that ID', 404);
+
+  const notEnoughItems = itemsNeedToAddFlashSale.some(
+    (item, index) => item.inventoryQuantity < flashsales[index].quantity
+  );
+  if (notEnoughItems) throw new AppError('Do not have enough items', 400);
 
   try {
     const result = await sequelize.transaction(async (t) => {
@@ -50,15 +55,15 @@ const createFlashSale = async (flashsaleBody) => {
 
       // Get all items have flashsale from flashsale body
       let itemsHadFlashSale = await Promise.all(
-        flashsales.map(async (fs) => {
-          const itemsHadFlashSale = await FlashSale_Item.findOne({
-            where: { ItemId: fs.itemId },
-          });
-          return itemsHadFlashSale;
-        })
+        flashsales.map(
+          async (fs) =>
+            await FlashSale_Item.findOne({
+              where: { ItemId: fs.itemId },
+            })
+        )
       );
 
-      // If all items do not have flashsale before then create
+      // If all items do not have flashsale before, then create
       if (itemsHadFlashSale.every((item) => item === null)) {
         flashsaleItems = await Promise.all(
           itemsNeedToAddFlashSale.map(
@@ -82,15 +87,18 @@ const createFlashSale = async (flashsaleBody) => {
               await FlashSale.findOne({ where: { id: item.FlashSaleId } })
           )
         );
+
+        console.log(existedFlashSale);
+
         if (existedFlashSale.some((fs) => fs.endDate > flashsale.startDate)) {
-          throw new AppError('Item is available during flashsale time');
+          throw new AppError('Item is available during flashsale time', 400);
         } else {
           flashsaleItems = await Promise.all(
             itemsNeedToAddFlashSale.map(
               async (item, index) =>
                 await FlashSale_Item.create(
                   {
-                    FlashSaleId: flashsale.id,
+                    FlashSaleId: flashsale.ids,
                     ItemId: item.id,
                     quantity: flashsales[index].quantity,
                     discountPercent: flashsales[index].discountPercent,

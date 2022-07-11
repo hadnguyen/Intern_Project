@@ -28,7 +28,7 @@ const getCategory = catchAsync(async (req, res) => {
 });
 
 const createCategory = catchAsync(async (req, res) => {
-  const category = await categoryService.createCategory(req.body);
+  const category = await categoryService.createCategory(req.body, req.files);
 
   res.status(201).json({
     status: 'success',

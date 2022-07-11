@@ -6,11 +6,10 @@ const itemSchema = Joi.object({
   costPrice: Joi.number().integer().positive().required(),
   sellingPrice: Joi.number().integer().positive().required(),
   weight: Joi.number().positive(),
-  soldQuantity: Joi.number().integer().positive(),
+  inventoryQuantity: Joi.number().integer().positive(),
   description: Joi.string(),
-  image: Joi.string(),
-  imageList: Joi.array().items(Joi.string()),
   categoryId: Joi.number().required(),
+  mediaName: Joi.string(),
 });
 
 module.exports = {

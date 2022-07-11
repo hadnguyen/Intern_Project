@@ -8,15 +8,17 @@ const upload = require('../utils/multer');
 
 const router = express.Router({ mergeParams: true });
 
-router.use('/:itemId/medias', mediaRoute);
-
 router.use(authController.protect);
 router.use(authController.restrictTo('admin'));
 
 router
   .route('/')
   .get(itemController.getAllItems)
-  .post(validate(itemValidation.itemSchema, 'body'), itemController.createItem);
+  .post(
+    upload.single('media'),
+    validate(itemValidation.itemSchema, 'body'),
+    itemController.createItem
+  );
 
 router
   .route('/:id')

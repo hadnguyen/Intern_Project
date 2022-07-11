@@ -78,7 +78,8 @@ const updateUserPhoto = async (userId, file) => {
 
     return user;
   } catch (error) {
-    throw new AppError('Internal server error', 500);
+    // throw new AppError('Internal server error', 500);
+    throw error;
   }
 };
 

@@ -28,11 +28,12 @@ const getItem = catchAsync(async (req, res) => {
 });
 
 const createItem = catchAsync(async (req, res) => {
-  const item = await itemService.createItem(req.body);
+  const { item, media } = await itemService.createItem(req.body, req.file);
 
   res.status(201).json({
     status: 'success',
     data: item,
+    media: media,
   });
 });
 

@@ -22,8 +22,25 @@ const getCategory = async (categoryId) => {
   return category;
 };
 
-const createCategory = async (categoryBody) => {
+const createCategory = async (categoryBody, files) => {
   try {
+    const urls = [];
+
+    if (files.length > 0) {
+      await Promise.all(
+        files.map(async (file) => {
+          const { path } = file;
+          const newPath = await cloudinary.uploader.upload(path, {
+            folder: 'VMO_Project/Category',
+            use_filename: true,
+          });
+          urls.push(newPath.secure_url);
+        })
+      );
+
+      categoryBody.banner = urls;
+    }
+
     const category = await Category.create(categoryBody);
     return category;
   } catch (error) {

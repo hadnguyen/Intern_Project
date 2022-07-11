@@ -60,36 +60,50 @@ const createOrder = async (orderBody, userId) => {
       if (orderedItem.some((item) => item === null))
         throw new AppError('No item found with that ID', 404);
 
-      const isEnoughItems = orderedItem.some(
+      const notEnoughItems = orderedItem.some(
         (item, index) =>
           item.inventoryQuantity < orderBody.items[index].quantity
       );
-      if (isEnoughItems) throw new AppError('Do not have enough items');
+      if (notEnoughItems) throw new AppError('Do not have enough items', 400);
 
       for (let index = 0; index < orderedItem.length; index++) {
         const { sellingPrice, FlashSales } = orderedItem[index];
 
+        // Check item have flashsale or not
         if (FlashSales.length) {
           const validFlashSale = FlashSales.filter(
-            (fs) => fs.endDate > Date.now()
+            (fs) => fs.endDate > Date.now() && fs.FlashSale_Item.quantity
           );
-          const usedFlashSale = await FlashSale_Item.findOne({
-            where: { FlashSaleId: validFlashSale[0].id },
-          });
+          console.log(validFlashSale[0].toJSON());
 
-          console.log(usedFlashSale.quantity);
+          // Check flashsale is valid or not
+          if (validFlashSale.length === 0) {
+            total += orderBody.items[index].quantity * sellingPrice;
+          } else {
+            const usedFlashSale = validFlashSale[0].FlashSale_Item;
+            const discountPercent = usedFlashSale.discountPercent.replace(
+              '%',
+              ''
+            );
 
-          const discountPercent = usedFlashSale.discountPercent.replace(
-            '%',
-            ''
-          );
-          total +=
-            orderBody.items[index].quantity *
-            (sellingPrice * (100 - discountPercent) * 0.01);
+            // Check the number of purchases is more than the number of flashsale or not
+            const flashSaleQuantity =
+              orderBody.items[index].quantity > usedFlashSale.quantity
+                ? usedFlashSale.quantity
+                : orderBody.items[index].quantity;
 
-          // Reduce the number of items have flashsale
-          usedFlashSale.quantity -= orderBody.items[index].quantity;
-          await usedFlashSale.save({ transaction: t });
+            const normalQuantity =
+              orderBody.items[index].quantity - flashSaleQuantity;
+
+            total +=
+              flashSaleQuantity *
+                (sellingPrice * (100 - discountPercent) * 0.01) +
+              normalQuantity * sellingPrice;
+
+            // Reduce the number of items have flashsale
+            usedFlashSale.quantity -= flashSaleQuantity;
+            await usedFlashSale.save({ transaction: t });
+          }
         } else {
           total += orderBody.items[index].quantity * sellingPrice;
         }
@@ -117,7 +131,7 @@ const createOrder = async (orderBody, userId) => {
       orderBody.total = total;
 
       // Create order
-      const order = await Order.create(orderBodys, { transaction: t });
+      const order = await Order.create(orderBody, { transaction: t });
       const { id: orderId } = order;
 
       // Create order details

@@ -16,6 +16,7 @@ router
   .route('/')
   .get(categoryController.getAllCategories)
   .post(
+    upload.array('banner'),
     validate(categoryValidation.categorySchema, 'body'),
     categoryController.createCategory
   );

@@ -6,13 +6,17 @@ module.exports = multer({
   storage: multer.diskStorage({
     filename: (req, file, cb) => {
       const ext = file.mimetype.split('/')[1];
+      console.log(req.baseUrl);
       let name;
       if (req.baseUrl.split('/')[3] === 'users')
         name = `user-${req.user.id}-${Date.now()}.${ext}`;
       if (req.baseUrl.split('/')[3] === 'categories')
-        name = `category-${req.params.id}-${Date.now()}.${ext}`;
-      if (req.baseUrl.split('/')[3] === 'items')
-        name = `item-${req.params.itemId}-${Date.now()}.${ext}`;
+        name = `category-${Date.now()}.${ext}`;
+      if (
+        req.baseUrl.split('/')[3] === 'items' ||
+        req.baseUrl.split('/')[3] === 'medias'
+      )
+        name = `item-${Date.now()}.${ext}`;
 
       cb(null, name);
     },

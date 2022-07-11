@@ -1,11 +1,11 @@
 const { Op } = require('sequelize');
 const {
   User,
-  OrderDetail,
   Item,
   Voucher,
   Category,
   Media,
+  FlashSale,
 } = require('../models/index');
 
 const ApiFeatures = async (model, queryString, id) => {
@@ -126,7 +126,10 @@ const ApiFeatures = async (model, queryString, id) => {
         {
           model: Item,
           attributes: ['id', 'name', 'sellingPrice'],
-          include: [{ model: Category, attributes: ['name'] }],
+          include: [
+            { model: Category, attributes: ['name'] },
+            { model: FlashSale },
+          ],
         },
         { model: User, attributes: ['name', 'email'] },
         { model: Voucher },
