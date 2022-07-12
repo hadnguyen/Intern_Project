@@ -1,7 +1,9 @@
 const { sequelize } = require('../models/index');
-const { Item, FlashSale, FlashSale_Item } = require('../models/index');
+const { Item, FlashSale, FlashSale_Item, User } = require('../models/index');
 const AppError = require('../utils/appError');
 const ApiFeatures = require('../common/apiFeatures');
+const CronJob = require('cron').CronJob;
+const Email = require('../utils/email');
 
 const getAllFlashSales = async (queryString) => {
   try {
@@ -96,7 +98,7 @@ const createFlashSale = async (flashsaleBody) => {
               async (item, index) =>
                 await FlashSale_Item.create(
                   {
-                    FlashSaleId: flashsale.ids,
+                    FlashSaleId: flashsale.id,
                     ItemId: item.id,
                     quantity: flashsales[index].quantity,
                     discountPercent: flashsales[index].discountPercent,
@@ -108,8 +110,24 @@ const createFlashSale = async (flashsaleBody) => {
         }
       }
 
+      // Send email notification for flashsale
+      const users = await User.findAll({ where: { role: 'user' } });
+      let notificationTime = new Date(startDate);
+      notificationTime.setMinutes(notificationTime.getMinutes() - 1);
+
+      const job = new CronJob(notificationTime, async () => {
+        await Promise.all(
+          users.map(async (user) => {
+            const flashsaleEmail = new Email(user, '', startDate);
+            await flashsaleEmail.sendFlashSale();
+          })
+        );
+      });
+      job.start();
+
       return { flashsaleItems, flashsale };
     });
+
     return result;
   } catch (error) {
     throw error;

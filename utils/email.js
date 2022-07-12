@@ -1,10 +1,11 @@
 const nodemailer = require('nodemailer');
 const pug = require('pug');
 module.exports = class Email {
-  constructor(user, url = '') {
+  constructor(user, url = '', time = null) {
     this.to = user.email;
     this.name = user.name;
     this.url = url;
+    this.time = time;
     this.from = `ADMIN <${process.env.EMAIL_FROM}>`;
   }
 
@@ -66,6 +67,23 @@ module.exports = class Email {
       from: this.from,
       to: this.to,
       subject: 'Reset Password',
+      html,
+    };
+
+    await this.transporter().sendMail(mailOptions);
+  }
+
+  async sendFlashSale() {
+    const html = pug.renderFile(`${__dirname}/../views/emails/flashsale.pug`, {
+      name: this.name,
+      url: this.url,
+      time: this.time,
+      subject: 'Flash Sale Time',
+    });
+    const mailOptions = {
+      from: this.from,
+      to: this.to,
+      subject: 'Flash Sale Time',
       html,
     };
 
