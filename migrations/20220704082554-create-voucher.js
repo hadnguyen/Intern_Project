@@ -17,7 +17,7 @@ module.exports = {
         allowNull: false,
       },
       discountPercent: {
-        type: Sequelize.STRING,
+        type: Sequelize.FLOAT,
         allowNull: false,
       },
       quantity: {

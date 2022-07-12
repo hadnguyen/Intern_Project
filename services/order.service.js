@@ -11,6 +11,7 @@ const {
 } = require('../models/index');
 const AppError = require('../utils/appError');
 const ApiFeatures = require('../common/apiFeatures');
+const { Op } = require('sequelize');
 
 const getAllOrders = async (queryString) => {
   try {
@@ -27,7 +28,7 @@ const getOrder = async (orderId) => {
     include: [
       {
         model: Item,
-        include: Category,
+        include: [{ model: Category }, { model: FlashSale }],
       },
       { model: User },
       { model: Voucher },
@@ -74,17 +75,12 @@ const createOrder = async (orderBody, userId) => {
           const validFlashSale = FlashSales.filter(
             (fs) => fs.endDate > Date.now() && fs.FlashSale_Item.quantity
           );
-          console.log(validFlashSale[0].toJSON());
 
           // Check flashsale is valid or not
           if (validFlashSale.length === 0) {
             total += orderBody.items[index].quantity * sellingPrice;
           } else {
             const usedFlashSale = validFlashSale[0].FlashSale_Item;
-            const discountPercent = usedFlashSale.discountPercent.replace(
-              '%',
-              ''
-            );
 
             // Check the number of purchases is more than the number of flashsale or not
             const flashSaleQuantity =
@@ -97,7 +93,7 @@ const createOrder = async (orderBody, userId) => {
 
             total +=
               flashSaleQuantity *
-                (sellingPrice * (100 - discountPercent) * 0.01) +
+                (sellingPrice * (1 - usedFlashSale.discountPercent)) +
               normalQuantity * sellingPrice;
 
             // Reduce the number of items have flashsale
@@ -120,8 +116,7 @@ const createOrder = async (orderBody, userId) => {
         if (voucher.endDate < Date.now()) {
           throw new AppError('The voucher is invalid or has expired', 400);
         } else {
-          const discountPercent = voucher.discountPercent.replace('%', '');
-          total = total - (total * discountPercent) / 100;
+          total = total * (1 - voucher.discountPercent);
           voucher.quantity -= 1;
           await voucher.save({ transaction: t });
         }
@@ -168,24 +163,85 @@ const createOrder = async (orderBody, userId) => {
 };
 
 const updateOrder = async (orderId, orderBody) => {
-  const order = await Order.findOne({ where: { id: orderId } });
+  const order = await Order.findOne({
+    where: { id: orderId },
+    include: [
+      {
+        model: Item,
+        include: FlashSale,
+      },
+      { model: Voucher },
+    ],
+  });
 
   if (!order) {
     throw new AppError('No order found with that ID', 404);
   }
 
-  try {
-    await Order.update(orderBody, {
-      where: {
-        id: orderId,
-      },
-    });
-    await order.reload();
-  } catch (error) {
-    throw new AppError('Internal server error', 500);
-  }
+  if (order.status === 'canceled' || order.status === 'completed')
+    throw new AppError('Can not change order!', 400);
 
-  return order;
+  try {
+    if (orderBody.status === 'canceled') {
+      const { voucherId, Items } = order;
+
+      const result = await sequelize.transaction(async (t) => {
+        for (let index = 0; index < Items.length; index++) {
+          const {
+            id: itemId,
+            OrderDetail: orderDetail,
+            FlashSales: flashSales,
+          } = Items[index];
+
+          // Update quantity in Item
+          const item = await Item.findOne({ where: { id: itemId } });
+          item.inventoryQuantity += orderDetail.quantity;
+          item.soldQuantity -= orderDetail.quantity;
+          await item.save({ transaction: t });
+
+          // Update quantity in FlashSale
+          const [flashSale] = flashSales;
+          const flashSaleItem = await FlashSale_Item.findOne({
+            where: {
+              [Op.and]: [{ FlashSaleId: flashSale.id }, { ItemId: item.id }],
+            },
+          });
+          flashSaleItem.quantity += orderDetail.quantity;
+          await flashSaleItem.save({ transaction: t });
+        }
+
+        // Update quantity in Voucher
+        const voucher = await Voucher.findOne({ where: { id: voucherId } });
+        voucher.quantity += 1;
+        await voucher.save({ transaction: t });
+
+        await Order.update(
+          orderBody,
+          {
+            where: {
+              id: orderId,
+            },
+          },
+          { transaction: t }
+        );
+
+        await order.reload();
+        return order;
+      });
+      return result;
+    } else {
+      await Order.update(orderBody, {
+        where: {
+          id: orderId,
+        },
+      });
+
+      await order.reload();
+      return order;
+    }
+  } catch (error) {
+    throw error;
+  }
 };
 
 module.exports = {

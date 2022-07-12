@@ -19,6 +19,9 @@ router
 router
   .route('/:id')
   .get(orderController.getOrder)
-  .patch(orderController.updateOrder);
+  .patch(
+    validate(orderValidation.updatedOrderSchema, 'body'),
+    orderController.updateOrder
+  );
 
 module.exports = router;

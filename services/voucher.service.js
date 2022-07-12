@@ -32,7 +32,6 @@ const createVoucher = async (voucherBody) => {
 
 const updateVoucher = async (voucherId, voucherBody) => {
   const voucher = await Voucher.findOne({ where: { id: voucherId } });
-  console.log(voucherBody);
 
   if (!voucher) {
     throw new AppError('No voucher found with that ID', 404);

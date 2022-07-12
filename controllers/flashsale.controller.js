@@ -51,9 +51,19 @@ const updateFlashSale = catchAsync(async (req, res) => {
   });
 });
 
+const deleteFlashSale = catchAsync(async (req, res) => {
+  await flashsaleService.deleteFlashSale(req.params.id);
+
+  res.status(200).json({
+    status: 'success',
+    data: null,
+  });
+});
+
 module.exports = {
   getAllFlashSales,
   getFlashSale,
   createFlashSale,
   updateFlashSale,
+  deleteFlashSale,
 };

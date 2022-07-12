@@ -103,10 +103,9 @@ const createResetPasswordToken = async (email) => {
 
   user.resetPasswordToken = resetPasswordToken;
   user.resetPasswordExpire = resetPasswordExpire;
+  await user.save({ fields: ['resetPasswordToken', 'resetPasswordExpire'] });
 
   try {
-    await user.save({ fields: ['resetPasswordToken', 'resetPasswordExpire'] });
-
     const resetURL = `http://127.0.0.1:3000/api/v1/users/resetPassword/${resetToken}`;
     const email = new Email(user, resetURL);
     await email.sendResetPassword();
@@ -114,7 +113,6 @@ const createResetPasswordToken = async (email) => {
     user.resetPasswordToken = null;
     user.resetPasswordExpire = null;
     await user.save({ fields: ['resetPasswordToken', 'resetPasswordExpire'] });
-    console.log('Error!!!!');
     throw new AppError('Error: sending the email', 500);
   }
 };

@@ -88,8 +88,6 @@ const createFlashSale = async (flashsaleBody) => {
           )
         );
 
-        console.log(existedFlashSale);
-
         if (existedFlashSale.some((fs) => fs.endDate > flashsale.startDate)) {
           throw new AppError('Item is available during flashsale time', 400);
         } else {
@@ -119,7 +117,9 @@ const createFlashSale = async (flashsaleBody) => {
 };
 
 const updateFlashSale = async (flashsaleId, flashsaleBody) => {
-  const flashsale = await FlashSale.findOne({ where: { id: flashsaleId } });
+  const flashsale = await FlashSale.findOne({
+    where: { id: flashsaleId },
+  });
 
   if (!flashsale) {
     throw new AppError('No flashsale found with that ID', 404);

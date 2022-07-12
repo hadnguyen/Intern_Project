@@ -43,16 +43,27 @@ const updateUser = async (userId, userBody) => {
   return user;
 };
 
-const deleteUser = async (userId) => {
-  const isDeleted = await User.destroy({
-    where: {
-      id: userId,
-    },
-  });
+// const deleteUser = async (userId) => {
+//   const isDeleted = await User.destroy({
+//     where: {
+//       id: userId,
+//     },
+//   });
 
-  if (!isDeleted) {
+//   if (!isDeleted) {
+//     throw new AppError('No user found with that ID', 404);
+//   }
+// };
+
+const deleteUser = async (userId) => {
+  const user = await User.findOne({ where: { id: userId } });
+
+  if (!user) {
     throw new AppError('No user found with that ID', 404);
   }
+
+  user.status = 'inactive';
+  await user.save({ fields: ['status'] });
 };
 
 const updateUserPhoto = async (userId, file) => {

@@ -37,7 +37,7 @@ module.exports = (sequelize, DataTypes) => {
       telephone: DataTypes.STRING,
       photo: DataTypes.STRING,
       status: {
-        type: DataTypes.ENUM('active', 'inactive'),
+        type: DataTypes.STRING,
         defaultValue: 'active',
       },
       resetPasswordToken: DataTypes.STRING,
