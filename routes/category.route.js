@@ -36,8 +36,8 @@ module.exports = router;
  *   Category:
  *    type: object
  *    properties:
- *     _id:
- *      type: objectId
+ *     id:
+ *      type: integer
  *     name:
  *      type: string
  *     priority:
@@ -94,6 +94,19 @@ module.exports = router;
  *          message:
  *           type: string
  *           example: Please login to access
+ *     403:
+ *      description: forbidden
+ *      content:
+ *       application/json:
+ *        schema:
+ *         type: object
+ *         properties:
+ *          status:
+ *           type: string
+ *           example: fail
+ *          message:
+ *           type: string
+ *           example: Do not have permission
  *   post:
  *    summary: Add a new category
  *    security:
@@ -103,13 +116,21 @@ module.exports = router;
  *     description: Category object that needs to be added
  *     required: true
  *     content:
- *      application/json:
+ *      multipart/form-data:
  *       schema:
- *        $ref: '#/components/schemas/Category'
- *       example:
- *        name: Phone
- *        priority: 1
- *        banner: [image1.jpeg, image2.jpeg]
+ *        type: object
+ *        properties:
+ *         name:
+ *          type: string
+ *          example: Phone
+ *         priority:
+ *          type: string
+ *          example: 1
+ *         banner:
+ *          type: array
+ *          items:
+ *           type: string
+ *           format: binary
  *    responses:
  *     200:
  *      description: success
@@ -179,6 +200,32 @@ module.exports = router;
  *          message:
  *           type: string
  *           example: Please login to access
+ *     403:
+ *      description: forbidden
+ *      content:
+ *       application/json:
+ *        schema:
+ *         type: object
+ *         properties:
+ *          status:
+ *           type: string
+ *           example: fail
+ *          message:
+ *           type: string
+ *           example: Do not have permission
+ *     404:
+ *      description: not found
+ *      content:
+ *       application/json:
+ *        schema:
+ *         type: object
+ *         properties:
+ *          status:
+ *           type: string
+ *           example: fail
+ *          message:
+ *           type: string
+ *           example: No category found with that ID
  *
  *   patch:
  *    summary: Update category by ID
@@ -196,13 +243,19 @@ module.exports = router;
  *     description: Category object that needs to be updated
  *     required: true
  *     content:
- *      application/json:
+ *      multipart/form-data:
  *       schema:
- *        $ref: '#/components/schemas/Category'
- *       example:
- *        name: Phone
- *        priority: 1
- *        banner: [image1.jpeg, image2.jpeg]
+ *        type: object
+ *        properties:
+ *         name:
+ *          type: string
+ *         priority:
+ *          type: string
+ *         banner:
+ *          type: array
+ *          items:
+ *           type: string
+ *           format: binary
  *    responses:
  *     200:
  *      description: success
@@ -237,6 +290,19 @@ module.exports = router;
  *          message:
  *           type: string
  *           example: Do not have permission
+ *     404:
+ *      description: not found
+ *      content:
+ *       application/json:
+ *        schema:
+ *         type: object
+ *         properties:
+ *          status:
+ *           type: string
+ *           example: fail
+ *          message:
+ *           type: string
+ *           example: No category found with that ID
  *
  *   delete:
  *    summary: Delete category by ID
@@ -290,4 +356,17 @@ module.exports = router;
  *          message:
  *           type: string
  *           example: Do not have permission
+ *     404:
+ *      description: not found
+ *      content:
+ *       application/json:
+ *        schema:
+ *         type: object
+ *         properties:
+ *          status:
+ *           type: string
+ *           example: fail
+ *          message:
+ *           type: string
+ *           example: No category found with that ID
  */

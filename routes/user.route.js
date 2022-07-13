@@ -54,7 +54,7 @@ module.exports = router;
  *      - password
  *     properties:
  *       _id:
- *         type: objectId
+ *         type: integer
  *       name:
  *         type: string
  *       email:
@@ -120,10 +120,71 @@ module.exports = router;
  *      application/json:
  *       schema:
  *        type: object
- *        $ref: '#/components/schemas/User'
+ *        properties:
+ *         name:
+ *          type: string
+ *          example: test
+ *         email:
+ *          type: string
+ *          example: test@mailsac.com
+ *         password:
+ *          type: string
+ *          example: 12345678
+ *         address:
+ *          type: string
+ *          example: VN
+ *         telephone:
+ *          type: string
+ *          example: 111111111
  *    responses:
  *     201:
  *      description: success
+ *      content:
+ *       application/json:
+ *        schema:
+ *         type: object
+ *         properties:
+ *          id:
+ *           type: integer
+ *           example: 1
+ *          name:
+ *           type: string
+ *           example: test
+ *          email:
+ *           type: string
+ *           example: test@mailsac.com
+ *          address:
+ *           type: string
+ *           example: VN
+ *          telephone:
+ *           type: string
+ *           example: 111111111
+ *     400:
+ *      description: bad request
+ *      content:
+ *       application/json:
+ *        schema:
+ *         type: object
+ *         properties:
+ *          status:
+ *           type: string
+ *           example: fail
+ *          message:
+ *           type: string
+ *           example: email must be a valid email
+ *     500:
+ *      description: internal server error
+ *      content:
+ *       application/json:
+ *        schema:
+ *         type: object
+ *         properties:
+ *          status:
+ *           type: string
+ *           example: error
+ *          message:
+ *           type: string
+ *           example: internal server error
  *
  *
  *  /api/v1/users/login:
@@ -142,7 +203,7 @@ module.exports = router;
  *          example: test@mailsac.com
  *         password:
  *          type: string
- *          example: 123
+ *          example: 12345678
  *    responses:
  *     200:
  *      description: success
@@ -150,7 +211,29 @@ module.exports = router;
  *       application/json:
  *        schema:
  *         type: object
- *         $ref: '#/components/schemas/User'
+ *         properties:
+ *          id:
+ *           type: integer
+ *           example: 1
+ *          name:
+ *           type: string
+ *           example: test
+ *          email:
+ *           type: string
+ *           example: test@mailsac.com
+ *     400:
+ *      description: bad request
+ *      content:
+ *       application/json:
+ *        schema:
+ *         type: object
+ *         properties:
+ *          status:
+ *           type: string
+ *           example: fail
+ *          message:
+ *           type: string
+ *           example: password is required
  *     401:
  *      description: unauthorized
  *      content:
@@ -164,6 +247,7 @@ module.exports = router;
  *          message:
  *           type: string
  *           example: Incorrect email or password
+ *
  *
  *  /api/v1/users:
  *   get:
@@ -242,6 +326,32 @@ module.exports = router;
  *          message:
  *           type: string
  *           example: Please login to access
+ *     403:
+ *      description: forbidden
+ *      content:
+ *       application/json:
+ *        schema:
+ *         type: object
+ *         properties:
+ *          status:
+ *           type: string
+ *           example: fail
+ *          message:
+ *           type: string
+ *           example: Do not have permission
+ *     404:
+ *      description: not found
+ *      content:
+ *       application/json:
+ *        schema:
+ *         type: object
+ *         properties:
+ *          status:
+ *           type: string
+ *           example: fail
+ *          message:
+ *           type: string
+ *           example: No user found with that ID
  *
  *   patch:
  *    summary: Update user by ID
@@ -263,7 +373,7 @@ module.exports = router;
  *       schema:
  *        $ref: '#/components/schemas/User'
  *       example:
- *        name: test
+ *        name: Test
  *    responses:
  *     200:
  *      description: success
@@ -298,6 +408,19 @@ module.exports = router;
  *          message:
  *           type: string
  *           example: Do not have permission
+ *     404:
+ *      description: not found
+ *      content:
+ *       application/json:
+ *        schema:
+ *         type: object
+ *         properties:
+ *          status:
+ *           type: string
+ *           example: fail
+ *          message:
+ *           type: string
+ *           example: No user found with that ID
  *
  *   delete:
  *    summary: Delete user by ID
@@ -351,4 +474,68 @@ module.exports = router;
  *          message:
  *           type: string
  *           example: Do not have permission
+ *     404:
+ *      description: not found
+ *      content:
+ *       application/json:
+ *        schema:
+ *         type: object
+ *         properties:
+ *          status:
+ *           type: string
+ *           example: fail
+ *          message:
+ *           type: string
+ *           example: No user found with that ID
+ *
+ *  /api/v1/users/profile:
+ *   patch:
+ *    summary: Update user photo
+ *    security:
+ *    - bearerAuth: []
+ *    tags: [User]
+ *    requestBody:
+ *     description: User photo that needs to be updated
+ *     required: true
+ *     content:
+ *      multipart/form-data:
+ *       schema:
+ *        type: object
+ *        properties:
+ *         photo:
+ *          type: string
+ *          format: binary
+ *    responses:
+ *     200:
+ *      description: success
+ *      content:
+ *       application/json:
+ *        schema:
+ *         type: object
+ *         properties:
+ *          id:
+ *           type: integer
+ *           example: 1
+ *          name:
+ *           type: string
+ *           example: test
+ *          email:
+ *           type: string
+ *           example: test@mailsac.com
+ *          photo:
+ *           type: string
+ *           example: test.png
+ *     401:
+ *      description: unauthorized
+ *      content:
+ *       application/json:
+ *        schema:
+ *         type: object
+ *         properties:
+ *          status:
+ *           type: string
+ *           example: fail
+ *          message:
+ *           type: string
+ *           example: Please login to access
  */

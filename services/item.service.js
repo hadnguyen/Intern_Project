@@ -47,12 +47,14 @@ const createItem = async (itemBody, file) => {
 
     return { item, media };
   } catch (error) {
-    throw new AppError('Internal server error', 500);
+    // throw new AppError('Internal server error', 500);
+    throw error;
   }
 };
 
 const updateItem = async (itemId, itemBody) => {
   const item = await Item.findOne({ where: { id: itemId } });
+  console.log(itemBody);
 
   if (!item) {
     throw new AppError('No item found with that ID', 404);
@@ -66,7 +68,8 @@ const updateItem = async (itemId, itemBody) => {
     });
     await item.reload();
   } catch (error) {
-    throw new AppError('Internal server error', 500);
+    // throw new AppError('Internal server error', 500);
+    throw error;
   }
 
   return item;

@@ -30,7 +30,19 @@ const updateMedia = catchAsync(async (req, res) => {
   });
 });
 
+const createMedia = catchAsync(async (req, res) => {
+  const media = await mediaService.createMedia(req.body, req.file);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      media,
+    },
+  });
+});
+
 module.exports = {
   getAllMedias,
+  createMedia,
   updateMedia,
 };

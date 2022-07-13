@@ -80,7 +80,8 @@ const updateCategory = async (categoryId, categoryBody, files) => {
     });
     await category.reload();
   } catch (error) {
-    throw new AppError('Internal server error', 500);
+    // throw new AppError('Internal server error', 500);
+    throw error;
   }
 
   return category;

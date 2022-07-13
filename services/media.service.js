@@ -19,12 +19,14 @@ const updateMedia = async (mediaId, mediaBody, file) => {
     throw new AppError('No media found with that ID', 404);
   }
   try {
-    const result = await cloudinary.uploader.upload(file.path, {
-      folder: 'VMO_Project/Item',
-      use_filename: true,
-    });
+    if (file) {
+      const result = await cloudinary.uploader.upload(file.path, {
+        folder: 'VMO_Project/Item',
+        use_filename: true,
+      });
 
-    mediaBody.url = result.secure_url;
+      mediaBody.url = result.secure_url;
+    }
 
     await Media.update(mediaBody, {
       where: {
@@ -39,7 +41,28 @@ const updateMedia = async (mediaId, mediaBody, file) => {
   }
 };
 
+const createMedia = async (mediaBody, file) => {
+  try {
+    const result = await cloudinary.uploader.upload(file.path, {
+      folder: 'VMO_Project/Item',
+      use_filename: true,
+    });
+
+    const media = await Media.create({
+      name: mediaBody.name,
+      url: result.secure_url,
+      type: mediaBody.type,
+      itemId: mediaBody.itemId,
+    });
+
+    return media;
+  } catch (error) {
+    throw error;
+  }
+};
+
 module.exports = {
   getAllMedias,
+  createMedia,
   updateMedia,
 };

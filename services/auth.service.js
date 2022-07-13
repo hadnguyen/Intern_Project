@@ -45,7 +45,12 @@ const createUser = async (userBody) => {
     await welcomeEmail.sendWelcome();
     await verifyEmail.sendVerifyEmail();
 
-    return newUser;
+    const user = await User.findOne({
+      where: { id: newUser.id },
+      attributes: ['id', 'name', 'email', 'address', 'telephone'],
+    });
+
+    return user;
   } catch (error) {
     throw new AppError('Internal server error', 500);
   }
@@ -85,7 +90,11 @@ const loginUser = async (email, password) => {
   if (user.status === 'inactive')
     throw new AppError('Your account had been locked', 401);
 
-  return user;
+  const userRes = await User.findOne({
+    where: { id: user.id },
+    attributes: ['id', 'name', 'email'],
+  });
+  return userRes;
 };
 
 const createResetPasswordToken = async (email) => {
